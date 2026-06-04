@@ -73,7 +73,8 @@ class TestDown:
 
 
 class TestConvBlock:
-    def test_shape_valid(self) -> None:
+    @pytest.mark.parametrize('batch_norm', [True, False])
+    def test_shape_valid(self, batch_norm) -> None:
         shape = [20, 30]
         channels = 4
         out_channels = 5
@@ -82,7 +83,7 @@ class TestConvBlock:
 
         tensor_in = torch.ones([n_batch, channels, *shape])
         conv = dlmbl_unet.ConvBlock(
-            channels, out_channels, kernel_size, padding="valid"
+            channels, out_channels, kernel_size, padding="valid", use_batch_norm=batch_norm
         )
         tensor_out = conv(tensor_in)
 
@@ -91,7 +92,8 @@ class TestConvBlock:
         msg = "Output shape for valid padding is incorrect."
         assert tensor_out.shape == torch.Size(shape_expected), msg
 
-    def test_shape_same(self) -> None:
+    @pytest.mark.parametrize('batch_norm', [True, False])
+    def test_shape_same(self, batch_norm) -> None:
         shape = [16, 39]
         channels = 4
         out_channels = 5
@@ -99,7 +101,7 @@ class TestConvBlock:
         n_batch = 1
 
         tensor_in = torch.ones([n_batch, channels, *shape])
-        conv = dlmbl_unet.ConvBlock(channels, out_channels, kernel_size, padding="same")
+        conv = dlmbl_unet.ConvBlock(channels, out_channels, kernel_size, padding="same", use_batch_norm=batch_norm)
         tensor_out = conv(tensor_in)
 
         shape_expected = [n_batch, out_channels, *shape]
@@ -150,7 +152,8 @@ class TestUNet:
         msg = "The computation of number of feature maps in the decoder is incorrect for level 0"
         assert unet.compute_fmaps_decoder(0) == (85, 17), msg
 
-    def test_shape_valid_2d(self) -> None:
+    @pytest.mark.parametrize('batch_norm', [True, False])
+    def test_shape_valid_2d(self, batch_norm) -> None:
         unetvalid = dlmbl_unet.UNet(
             depth=4,
             in_channels=2,
@@ -160,13 +163,15 @@ class TestUNet:
             downsample_factor=3,
             kernel_size=5,
             padding="valid",
+            use_batch_norm=batch_norm
         )
         msg = "The output shape of your UNet is incorrect for valid padding."
         assert unetvalid(torch.ones((2, 2, 536, 536))).shape == torch.Size(
             (2, 7, 108, 108)
         ), msg
 
-    def test_shape_valid_3d(self) -> None:
+    @pytest.mark.parametrize('batch_norm', [True, False])
+    def test_shape_valid_3d(self, batch_norm) -> None:
         unetvalid = dlmbl_unet.UNet(
             depth=3,
             in_channels=2,
@@ -177,13 +182,15 @@ class TestUNet:
             kernel_size=5,
             padding="valid",
             ndim=3,
+            use_batch_norm=batch_norm
         )
         msg = "The output shape of your UNet is incorrect for valid padding in 3D."
         assert unetvalid(torch.ones((2, 2, 158, 158, 158))).shape == torch.Size(
             (2, 1, 18, 18, 18)
         ), msg
 
-    def test_shape_same_2d(self) -> None:
+    @pytest.mark.parametrize('batch_norm', [True, False])
+    def test_shape_same_2d(self, batch_norm) -> None:
         unetsame = dlmbl_unet.UNet(
             depth=4,
             in_channels=2,
@@ -193,13 +200,15 @@ class TestUNet:
             downsample_factor=3,
             kernel_size=5,
             padding="same",
+            use_batch_norm=batch_norm
         )
         msg = "The output shape of your Unet is incorrect for same padding."
         assert unetsame(torch.ones((2, 2, 243, 243))).shape == torch.Size(
             (2, 7, 243, 243)
         ), msg
 
-    def test_shape_same_3d(self) -> None:
+    @pytest.mark.parametrize('batch_norm', [True, False])
+    def test_shape_same_3d(self, batch_norm) -> None:
         unetsame = dlmbl_unet.UNet(
             depth=3,
             in_channels=2,
@@ -210,6 +219,7 @@ class TestUNet:
             kernel_size=5,
             padding="same",
             ndim=3,
+            use_batch_norm=batch_norm
         )
         msg = "The output shape of your Unet is incorrect for same padding."
         assert unetsame(torch.ones((2, 2, 27, 27, 27))).shape == torch.Size(

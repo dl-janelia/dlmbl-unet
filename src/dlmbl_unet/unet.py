@@ -187,6 +187,7 @@ class UNet(torch.nn.Module):
         padding: Literal["same", "valid"] = "same",
         upsample_mode: str = "nearest",
         ndim: Literal[2, 3] = 2,
+        use_batch_norm: bool = False,
     ):
         """A U-Net for 2D or 3D input that expects tensors shaped like:
         ``(batch, channels, height, width)`` or ``(batch, channels, depth, height, width)``,
@@ -244,7 +245,7 @@ class UNet(torch.nn.Module):
             fmaps_in, fmaps_out = self.compute_fmaps_encoder(level)
             self.left_convs.append(
                 ConvBlock(
-                    fmaps_in, fmaps_out, self.kernel_size, self.padding, ndim=ndim
+                    fmaps_in, fmaps_out, self.kernel_size, self.padding, ndim=ndim, use_batch_norm=use_batch_norm
                 )
             )
 
