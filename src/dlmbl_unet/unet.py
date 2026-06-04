@@ -39,6 +39,7 @@ class ConvBlock(torch.nn.Module):
         convops = {2: torch.nn.Conv2d, 3: torch.nn.Conv3d}
         # define layers in conv pass
         self.conv_pass = torch.nn.Sequential(
+            torch.nn.BatchNorm2d(in_channels, eps=1e-5, momentum=0.05),
             convops[ndim](
                 in_channels, out_channels, kernel_size=kernel_size, padding=padding
             ),
