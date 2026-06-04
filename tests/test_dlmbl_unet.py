@@ -78,15 +78,16 @@ class TestConvBlock:
         channels = 4
         out_channels = 5
         kernel_size = 7
+        n_batch = 1
 
-        tensor_in = torch.ones([channels, *shape])
+        tensor_in = torch.ones([n_batch, channels, *shape])
         conv = dlmbl_unet.ConvBlock(
             channels, out_channels, kernel_size, padding="valid"
         )
         tensor_out = conv(tensor_in)
 
         shape_expected = list(np.array(shape) - 2 * (kernel_size - 1))
-        shape_expected = [out_channels, *shape_expected]
+        shape_expected = [n_batch, out_channels, *shape_expected]
         msg = "Output shape for valid padding is incorrect."
         assert tensor_out.shape == torch.Size(shape_expected), msg
 
@@ -95,17 +96,18 @@ class TestConvBlock:
         channels = 4
         out_channels = 5
         kernel_size = 7
+        n_batch = 1
 
-        tensor_in = torch.ones([channels, *shape])
+        tensor_in = torch.ones([n_batch, channels, *shape])
         conv = dlmbl_unet.ConvBlock(channels, out_channels, kernel_size, padding="same")
         tensor_out = conv(tensor_in)
 
-        shape_expected = [out_channels, *shape]
+        shape_expected = [n_batch, out_channels, *shape]
         msg = "Output shape for same padding is incorrect."
         assert tensor_out.shape == torch.Size(shape_expected), msg
 
     def test_relu(self) -> None:
-        shape = [1, 100, 100]
+        shape = [1, 1, 100, 100]
         tensor_in = torch.randn(shape) * 2
 
         conv = dlmbl_unet.ConvBlock(1, 50, 5, padding="same")

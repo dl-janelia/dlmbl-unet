@@ -13,6 +13,7 @@ class ConvBlock(torch.nn.Module):
         kernel_size: int,
         padding: Literal["same", "valid"] = "same",
         ndim: Literal[2, 3] = 2,
+        use_batch_norm: bool = False,
     ):
         """
         Args:
@@ -37,16 +38,18 @@ class ConvBlock(torch.nn.Module):
             msg = f"Invalid number of dimensions: {ndim=}. Options are 2 or 3."
             raise ValueError(msg)
         convops = {2: torch.nn.Conv2d, 3: torch.nn.Conv3d}
+        bnops = {2: torch.nn.BatchNorm2d, 3: torch.nn.BatchNorm3d}
         # define layers in conv pass
         self.conv_pass = torch.nn.Sequential(
-            torch.nn.BatchNorm2d(in_channels, eps=1e-5, momentum=0.05),
             convops[ndim](
                 in_channels, out_channels, kernel_size=kernel_size, padding=padding
             ),
+            bnops[ndim](out_channels, eps=1e-5, momentum=0.05) if use_batch_norm else torch.nn.Identity(),
             torch.nn.ReLU(),
             convops[ndim](
                 out_channels, out_channels, kernel_size=kernel_size, padding=padding
             ),
+            bnops[ndim](out_channels, eps=1e-5, momentum=0.05) if use_batch_norm else torch.nn.Identity(),
             torch.nn.ReLU(),
         )
 
