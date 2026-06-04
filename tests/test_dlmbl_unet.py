@@ -225,3 +225,34 @@ class TestUNet:
         assert unetsame(torch.ones((2, 2, 27, 27, 27))).shape == torch.Size(
             (2, 1, 27, 27, 27)
         ), msg
+
+
+    @pytest.mark.parametrize('batch_norm', [True, False])
+    def test_has_batch_norm_2d(self, batch_norm):
+        unet = dlmbl_unet.UNet(
+            depth=3,
+            in_channels=2,
+            ndim=2,
+            use_batch_norm=batch_norm
+        )
+        if batch_norm:
+            module_types = [type(m) for m in unet.modules()]
+            assert torch.nn.BatchNorm2d in module_types
+        else:
+            module_types = [type(m) for m in unet.modules()]
+            assert torch.nn.BatchNorm2d not in module_types
+
+    @pytest.mark.parametrize('batch_norm', [True, False])
+    def test_has_batch_norm_3d(self, batch_norm):
+        unet = dlmbl_unet.UNet(
+            depth=3,
+            in_channels=2,
+            ndim=3,
+            use_batch_norm=batch_norm
+        )
+        if batch_norm:
+            module_types = [type(m) for m in unet.modules()]
+            assert torch.nn.BatchNorm3d in module_types
+        else:
+            module_types = [type(m) for m in unet.modules()]
+            assert torch.nn.BatchNorm3d not in module_types
