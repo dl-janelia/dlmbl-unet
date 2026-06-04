@@ -13,6 +13,7 @@ class ConvBlock(torch.nn.Module):
         kernel_size: int,
         padding: Literal["same", "valid"] = "same",
         ndim: Literal[2, 3] = 2,
+        use_batch_norm: bool = False,
     ):
         """
         Args:
@@ -37,15 +38,18 @@ class ConvBlock(torch.nn.Module):
             msg = f"Invalid number of dimensions: {ndim=}. Options are 2 or 3."
             raise ValueError(msg)
         convops = {2: torch.nn.Conv2d, 3: torch.nn.Conv3d}
+        bnops = {2: torch.nn.BatchNorm2d, 3: torch.nn.BatchNorm3d}
         # define layers in conv pass
         self.conv_pass = torch.nn.Sequential(
             convops[ndim](
                 in_channels, out_channels, kernel_size=kernel_size, padding=padding
             ),
+            bnops[ndim](out_channels, eps=1e-5, momentum=0.05) if use_batch_norm else torch.nn.Identity(),
             torch.nn.ReLU(),
             convops[ndim](
                 out_channels, out_channels, kernel_size=kernel_size, padding=padding
             ),
+            bnops[ndim](out_channels, eps=1e-5, momentum=0.05) if use_batch_norm else torch.nn.Identity(),
             torch.nn.ReLU(),
         )
 
@@ -183,6 +187,7 @@ class UNet(torch.nn.Module):
         padding: Literal["same", "valid"] = "same",
         upsample_mode: str = "nearest",
         ndim: Literal[2, 3] = 2,
+        use_batch_norm: bool = False,
     ):
         """A U-Net for 2D or 3D input that expects tensors shaped like:
         ``(batch, channels, height, width)`` or ``(batch, channels, depth, height, width)``,
@@ -240,7 +245,7 @@ class UNet(torch.nn.Module):
             fmaps_in, fmaps_out = self.compute_fmaps_encoder(level)
             self.left_convs.append(
                 ConvBlock(
-                    fmaps_in, fmaps_out, self.kernel_size, self.padding, ndim=ndim
+                    fmaps_in, fmaps_out, self.kernel_size, self.padding, ndim=ndim, use_batch_norm=use_batch_norm
                 )
             )
 
